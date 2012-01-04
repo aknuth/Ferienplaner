@@ -40,7 +40,7 @@ $(function() {
         	this.name = new XDate(2012, this.get('index')).toString('MMMM', 'de');
     		this.daysOfMonth = XDate.getDaysInMonth (2012, this.get('index') );
         	this.startDay = new XDate(2012,this.get('index'),1).getDay();
-        	this.days = new Days(this);
+        	this.days = new Days({},{actualMonth: this});
         }
     });
     
@@ -67,10 +67,16 @@ $(function() {
     
     Days = Backbone.Collection.extend({
     	model : Day,
-        initialize: function(actualMonth){
-        	this.reset();
+    	url: '/rest/fp/days/',
+    	initialize: function(models, options){
+        	//this.reset();
+        	//var dayList = new Days();
+    		this.url = this.url+options.actualMonth.name;
+    		this.fetch({success: function(){
+    			view.render();
+    		}});
+        	this.actualMonth=options.actualMonth;
         	this.holidays = new Holidays();
-        	this.actualMonth = actualMonth;
         	for ( var i=0; i< this.actualMonth.daysOfMonth ; i++){
             	var t = (this.actualMonth.startDay+i)%7;
             	var hs = this.holidays.get(this.actualMonth.get('index'));
@@ -79,7 +85,9 @@ $(function() {
             	var d = new Day({index:i, absenseType: at, month:this.actualMonth.name});
             	this.add(d);
         	}
-        }
+        },
+        
+        
     });
     
     DayView = Backbone.View.extend({ 

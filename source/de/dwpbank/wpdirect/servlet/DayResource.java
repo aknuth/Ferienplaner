@@ -1,13 +1,18 @@
 package de.dwpbank.wpdirect.servlet;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/fp")
-public class WineResource {
+public class DayResource {
 
 /**	@GET
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -34,6 +39,19 @@ public class WineResource {
 		return day;
 	}
 
+	//@GET @Path("{month}")
+	@GET @Path("/days/{month}")
+	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	public List<Day> find(@PathParam("month") String month) {
+		List<Day> result = new ArrayList<Day>();
+		Day day = new Day();
+		day.setIndex(0);
+		day.setAbsenseType(2);
+		day.setMonth(month);
+		result.add(day);
+		return result;
+	}
 	/**@PUT @Path("{id}")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
