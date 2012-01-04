@@ -1,0 +1,25 @@
+<config>
+    <connectors>
+	    <connector>
+	        <port>8082</port>
+	        <maxIdleTime>60000</maxIdleTime>
+	        <compression>true</compression>
+	    </connector>
+    </connectors>
+	<contextPath>/</contextPath>
+	<webAppSourceDirectory>${basedir}/webApplication</webAppSourceDirectory>
+	<systemProperties>
+	    <systemProperty>
+	        <name>contextPath</name>
+	        <value>/cvs</value>
+	    </systemProperty>
+	    <systemProperty>
+	        <name>file.encoding</name>
+	        <value>UTF-8</value>
+	    </systemProperty>
+	    <systemProperty>
+	        <name>CONFIG_PATH</name>
+	        <value>${basedir}/webApplication/WEB-INF</value>
+	    </systemProperty>
+	</systemProperties>
+</config>
