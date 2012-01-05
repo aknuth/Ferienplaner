@@ -85,9 +85,7 @@ $(function() {
             	var d = new Day({index:i, absenseType: at, month:this.actualMonth.name});
             	this.add(d);
         	}
-        },
-        
-        
+        }
     });
     
     DayView = Backbone.View.extend({ 

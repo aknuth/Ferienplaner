@@ -32,26 +32,56 @@ public class DayResource {
 		return dao.findById(Integer.parseInt(id));
 	}*/
 
-	@POST
+	/**@POST
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	public Day create(Day day) {
 		return day;
-	}
-
-	//@GET @Path("{month}")
-	@GET @Path("/days/{month}")
+	}*/
+	@POST
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	public List<Day> find(@PathParam("month") String month) {
-		List<Day> result = new ArrayList<Day>();
-		Day day = new Day();
-		day.setIndex(0);
-		day.setAbsenseType(2);
-		day.setMonth(month);
-		result.add(day);
-		return result;
+	public void a(String content) {
+		System.out.println(content);
 	}
+//	@POST @Path("{months}")
+//	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+//	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+//	public void b(String content) {
+//		System.out.println(content);
+//	}
+//	@POST @Path("{month}")
+//	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+//	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+//	public void c(String content) {
+//		System.out.println(content);
+//	}
+	@POST @Path("{day}")
+	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	public void d(String content) {
+		System.out.println(System.currentTimeMillis()+" : "+content);
+	}
+//	@POST @Path("{/months/month/days/day}")
+//	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+//	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+//	public void e(String content) {
+//		System.out.println(content);
+//	}
+
+	//@GET @Path("{month}")
+//	@GET @Path("/days/{month}")
+//	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+//	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+//	public List<Day> find(@PathParam("month") String month) {
+//		List<Day> result = new ArrayList<Day>();
+//		Day day = new Day();
+//		day.setIndex(0);
+//		day.setAbsenseType(2);
+//		day.setMonth(month);
+//		result.add(day);
+//		return result;
+//	}
 	/**@PUT @Path("{id}")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
