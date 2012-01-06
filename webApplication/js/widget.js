@@ -1,92 +1,5 @@
 $(function() {
 
-    AbsenseTypes = Backbone.Model.extend({
-    	initialize: function(){
-        	this.colors = ['#ffffff','gray','red','green','blue','yellow','#000080','#ff9900'],
-        	this.type = ['Arbeit','Sa/So/Feiertag', 'Tarifurlaub','Gleittag','Schulung','Sonderurlaub','Geschäftsreise','Sonstiges']
-        }
-    });
-    
-    Holidays = Backbone.Model.extend({
-        initialize: function(){
-        	 this.dts = [new XDate(2012,0,1),new XDate(2012,3,6),new XDate(2012,3,9),new XDate(2012,4,17),new XDate(2012,4,28),new XDate(2012,5,7),new XDate(2012,9,3),new XDate(2012,10,1),new XDate(2012,11,24),new XDate(2012,11,25),new XDate(2012,11,26),new XDate(2012,11,31)];
-        },
-    	get: function(month){
-    		var result = [];
-    		var k=0;
-    		for ( var i=0; i<this.dts.length ; i++){
-    			if (this.dts[i].getMonth()==month){
-    				result[k]=this.dts[i].getDate()-1;
-    				k++;
-    			}
-    		}
-    		return result;
-    	}
-    });
-    
-    Person = Backbone.Model.extend({ });
-    
-    Persons = Backbone.Collection.extend({
-    	initialize: function(){
-    		this.add(new Person({name:'Andreas Knuth'}));
-    		this.add(new Person({name:'Alexander Krumeich'}));
-    		this.add(new Person({name:'Stefan Grager'}));
-    		this.add(new Person({name:'Dirk Schaube'}));
-    	}
-    });
-    
-    Month = Backbone.Model.extend({  
-    	initialize: function(){
-        	this.name = new XDate(2012, this.get('index')).toString('MMMM', 'de');
-    		this.daysOfMonth = XDate.getDaysInMonth (2012, this.get('index') );
-        	this.startDay = new XDate(2012,this.get('index'),1).getDay();
-        	this.days = new Days({},{actualMonth: this});
-        }
-    });
-    
-    Months = Backbone.Collection.extend({
-        model:Month,
-    	initialize: function(){
-        	this.reset();
-    		for ( var i=0; i<12 ; i++){
-        		this.add(new Month({index:i}));
-        	}
-        }
-    });
-    
-    Scheduler = Backbone.Model.extend({
-    	initialize: function(){
-    		this.months = new Months();
-    		this.persons = new Persons();
-    	}
-    });
-    
-    Day = Backbone.Model.extend({
-    	url: "/rest/fp"
-    });
-    
-    Days = Backbone.Collection.extend({
-    	model : Day,
-    	url: '/rest/fp/days/',
-    	initialize: function(models, options){
-        	//this.reset();
-        	//var dayList = new Days();
-    		this.url = this.url+options.actualMonth.name;
-    		this.fetch({success: function(){
-    			view.render();
-    		}});
-        	this.actualMonth=options.actualMonth;
-        	this.holidays = new Holidays();
-        	for ( var i=0; i< this.actualMonth.daysOfMonth ; i++){
-            	var t = (this.actualMonth.startDay+i)%7;
-            	var hs = this.holidays.get(this.actualMonth.get('index'));
-            	//this.holidays.dts.indexOf(new XDate(2012,this.actualMonth.get('index'),i+1))>-1
-            	var at = (t==0||t==6||hs.indexOf(i)>-1)?1:0;
-            	var d = new Day({index:i, absenseType: at, month:this.actualMonth.name});
-            	this.add(d);
-        	}
-        }
-    });
     
     DayView = Backbone.View.extend({ 
     	
@@ -185,9 +98,8 @@ $(function() {
     });
     
     MonthPaginationView = Backbone.View.extend({
-    	initialize : function(canvas,scheduler) {
+    	initialize : function(canvas) {
             this.canvas = canvas;
-            this.scheduler = scheduler;
             this.x=800;
             this.y=455;
             
@@ -205,26 +117,21 @@ $(function() {
             
             this.el = document.getElementById("canvas");
             this.delegateEvents(this.events);
-            this.actualMonth = this.scheduler.get('actualMonth');
+            //this.actualMonth = this.scheduler.get('actualMonth');
     	},
     	events: { 
             "click #rightc,#right" : "clickR",
             "click #leftc,#left" : "clickL"
     	}, 
     	clickR: function(){ 
-    		this.actualMonth = this.scheduler.get('actualMonth');
-    		var am=(this.actualMonth.get('index')==11)?new Month({index:0}):new Month({index:this.actualMonth.get('index')+1});
-    		this.scheduler.set({actualMonth:am});
-            //this.month.attr({text: this.months.values[this.actualMonth]});
-            this.month.attr({text: am.name});
+    		var actualMonth = scheduler.get('actualMonth');
+    		var am=(actualMonth==11)?0:actualMonth+1;
+    		scheduler.set({actualMonth:am});
     	}, 
     	clickL: function(){ 
-    		this.actualMonth = this.scheduler.get('actualMonth');
-    		var am=(this.actualMonth.get('index')==0)?new Month({index:11}):new Month({index:this.actualMonth.get('index')-1});
-    		this.scheduler.set({actualMonth:am});
-            //this.actualMonth=this.actualMonth==0?11:this.actualMonth-1;
-            //this.month.attr({text: this.months.values[this.actualMonth]});
-            this.month.attr({text: am.name});
+    		var actualMonth = scheduler.get('actualMonth');
+    		var am=(actualMonth==0)?11:actualMonth-1;
+    		scheduler.set({actualMonth:am});
     	}, 
     	render: function(){
             this.bg.attr({x:this.x,y:this.y,width:134,height:26,r:13,fill: "#666", stroke: "none"});
@@ -233,7 +140,7 @@ $(function() {
             this.right.attr({path:"M"+(this.x+117)+","+(this.y+8)+"l10,5 -10,5z",fill: "#000"});
             
             //this.month.attr({x:this.x+67, y:this.y+13, text: this.months.values[this.actualMonth], fill: "#fff", stroke: "none", "font": '100 18px "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif'});
-            this.month.attr({x:this.x+67, y:this.y+13, text: this.actualMonth.name, fill: "#fff", stroke: "none", "font": '100 18px "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif'});
+            this.month.attr({x:this.x+67, y:this.y+13, text: new XDate(2012, scheduler.get('actualMonth')).toString('MMMM', 'de'), fill: "#fff", stroke: "none", "font": '100 18px "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif'});
 
             this.leftc.attr({cx:this.x+13,cy:this.y+13,r:10, fill: "#fff", stroke: "none"});
             this.rightc.attr({cx: this.x+121, cy:this.y+13, r:10, fill: "#fff", stroke: "none"});
@@ -245,17 +152,15 @@ $(function() {
     
     ScheduleView = Backbone.View.extend({
     	initialize : function() {
-            this.canvas = new Raphael(document.getElementById("canvas"));
-            this.scheduler = new Scheduler({actualMonth:new Month({index:new XDate().getMonth()})});
-            
-            this.persons = this.scheduler.persons;
-    		//this.months = new Months(new XDate().getMonth());
-            //this.actualMonth = new Month(new XDate().getMonth()); 
-        	this.weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    		this.monthPaginationView = new MonthPaginationView(this.canvas,this.scheduler);
+    		this.days = new Days();
+    		this.canvas = new Raphael(document.getElementById("canvas"));
+//            this.scheduler = new Scheduler();
+    		this.monthPaginationView = new MonthPaginationView(this.canvas);
     		this.absenseTypesSelectionView = new AbsenseTypesSelectionView(this.canvas);
+//            this.persons = this.scheduler.persons;
+        	this.weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
     		this.dayNames = [];
-    		this.daysviews = [];
+//    		this.daysviews = [];
     		//********************************************
     		//now let's render()
     		//********************************************
@@ -263,31 +168,42 @@ $(function() {
     		//********************************************
     		//now let's bind()
     		//********************************************
-    		this.render1 = _.bind(this.render, this); 
-    		this.scheduler.bind('change:actualMonth',this.render1);
+    		this.render1 = _.bind(this.fetch, this); 
+    		scheduler.bind('change:actualMonth',this.render1);
+    	},
+    	fetch: function(){
+    		this.days.url = '/rest/fp/days/'+scheduler.get('actualMonth');
+    		this.days.fetch({success: function(){
+    			console.log('Ready');				
+    			scheduleView.render();
+    		}, error: function(e) {
+    			console.log(e+'error');
+    		}});
     	},
     	render: function(){ 
-    		//this.canvas = new Raphael(document.getElementById("canvas"));
     		
     		this.monthPaginationView.render();
     		this.absenseTypesSelectionView.render();
+    		var daysOfMonth = XDate.getDaysInMonth (2012, scheduler.get('actualMonth'));
+    		var startDay = new XDate(2012,scheduler.get('actualMonth'),1).getDay();
     		for ( var i=0; i<31; i++){
-                var t = (this.scheduler.get('actualMonth').startDay+i)%7;
+                var t = (startDay+i)%7;
                 if (this.dayNames[i]){
                 	this.dayNames[i].remove();
                 }
-                if (i<this.scheduler.get('actualMonth').daysOfMonth){
+                if (i<daysOfMonth){
                     this.dayNames[i] = this.canvas.text();
-                    this.dayNames[i].attr({x:i*30+70,y:15,text:this.weekdays[t]+"\n"+(i+1)+".","font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});//this.canvas.text(i*30+70, 15, this.weekdays[t]+"\n"+(i+1)+".").attr({"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
+                    this.dayNames[i].attr({x:i*30+70,y:15,text:this.weekdays[t]+"\n"+(i+1)+".","font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
                 }
             }
-        	for ( var i=0; i<this.persons.length ; i++){
-                var name = this.persons.at(i).get('name').replace(' ','\n');
+        	
+    		for ( var i=0; i<scheduler.get('persons').length ; i++){
+                var name = scheduler.get('persons')[i].person.name.replace(' ','\n');
         		this.canvas.text(30, i*40+40, name).attr({"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
-        		if (!this.daysviews[i]){
-        			this.daysviews[i] = new DaysView(this.canvas,this.scheduler,i);
-        		}
-        		this.daysviews[i].render();
+//        		if (!this.daysviews[i]){
+//        			this.daysviews[i] = new DaysView(this.canvas,this.scheduler,i);
+//        		}
+//        		this.daysviews[i].render();
         	}
     	}  	
     	
@@ -297,5 +213,15 @@ $(function() {
     XDate.locales['de'] = {
        	monthNames: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
     };
-    var scheduleView = new ScheduleView();
+    var scheduleView = null;
+    //var persons = Backbone.Collection.extend({ model: Person });
+    scheduler = new Scheduler({actualMonth:new XDate().getMonth()}); 
+    scheduler.fetch({success: function(){
+    	console.log('persons loaded ...');				
+    	scheduleView = new ScheduleView();
+    },error:function (xhr, ajaxOptions, thrownError){
+        console.log(xhr.status);
+        console.log(thrownError);
+    }});
+    console.log('nothing');
 });

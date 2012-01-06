@@ -31,10 +31,10 @@ $(function() {
 
     Days = Backbone.Collection.extend({
 		model:Day,
-    	url:'/rest/fp/days',
+		url: '/rest/fp/days/',
 	    initialize: function(){
 	    	this.holidays = new Holidays();
-	    	for ( var k=0; k< 12 ; i++){
+	    	for ( var k=0; k< 12 ; k++){
 	    		var monthname = new XDate(2012, k).toString('MMMM', 'de');
 	    		var numberDays = XDate.getDaysInMonth (2012, k );
 	    		var startDay = new XDate(2012,k,1).getDay();
@@ -43,39 +43,31 @@ $(function() {
 	    			var t = (startDay+i)%7;
 	    			var at = (t==0||t==6||hs.indexOf(i)>-1)?1:0;
 		    		var day = new Day({day:i, month: k, absenseType: at});
-		    		day.save();
 		    		this.add(day);
 		    	}
 	    	}
+	    	console.log('Fertig');
 	    }
 	});
-	
-//    Month = Backbone.Model.extend({
-//    	url:'/rest/fp/month',
-//    });
-//    
-//    Months = Backbone.Collection.extend({
-//        model:Month,
-//        url:'/rest/fp/months',
-//        initialize: function(){
-//        	for ( var i=0; i< 12 ; i++){
-//        		var month = new Month({name:new XDate(2012, i).toString('MMMM', 'de')});
-//        		//month.save();
-//        		this.add(month);
-//        	}
-//        }
-//    });
-
-	
-/**	Scheduler = Backbone.Model.extend({
-		url:'/rest/fp',
-		initialize: function(){
-    		this.months = new Months();
+    Person = Backbone.Model.extend({
+    	initialize : function() {
+    		this.name = this.get('name');
     	}
-    });*/
-
+    });
+    
+    Persons = Backbone.Collection.extend({ 
+    	model: Person,
+    	//url: "/rest/fp/persons"
+    });
+    
+    Scheduler = Backbone.Model.extend({
+    	url: "/rest/fp/persons",
+    });
+    
     XDate.locales['de'] = {
            	monthNames: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
     };
-	var days = new Days();
+    
+   
+    
 });
