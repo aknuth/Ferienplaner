@@ -31,22 +31,31 @@ $(function() {
 
     Days = Backbone.Collection.extend({
 		model:Day,
-		url: '/rest/fp/days/',
-	    initialize: function(){
+		//url: '/rest/fp/days/',
+	    initialize: function(models, options){
+	    	this.reset();
+	    	this.persons=options[0].persons;
+	    	this.am = options[1].am
 	    	this.holidays = new Holidays();
-	    	for ( var k=0; k< 12 ; k++){
-	    		var monthname = new XDate(2012, k).toString('MMMM', 'de');
-	    		var numberDays = XDate.getDaysInMonth (2012, k );
-	    		var startDay = new XDate(2012,k,1).getDay();
-	    		var hs = this.holidays.get(k);
+	    	for ( var k=0; k < this.persons.length ; k++){
+	    		var monthname = new XDate(2012, this.am).toString('MMMM', 'de');
+	    		var numberDays = XDate.getDaysInMonth (2012, this.am );
+	    		var startDay = new XDate(2012,this.am,1).getDay();
+	    		var hs = this.holidays.get(this.am);
 	    		for ( var i=0; i< numberDays ; i++){
 	    			var t = (startDay+i)%7;
 	    			var at = (t==0||t==6||hs.indexOf(i)>-1)?1:0;
-		    		var day = new Day({day:i, month: k, absenseType: at});
+	    			for ( var j=0; j < models.length ; j++){
+		    			var model = models.at(j);
+		    			if (model && model.get('name')===this.persons.at(k).name && model.get('day')==i && model.get('month')==this.am){
+		    				at = model.get('absenseType');
+		    			}
+	    			}
+		    		var day = new Day({name: this.persons.at(k).name, day:i, month: this.am, absenseType: at});
 		    		this.add(day);
 		    	}
 	    	}
-	    	console.log('Fertig');
+	    	console.log('ready');
 	    }
 	});
     Person = Backbone.Model.extend({
@@ -57,7 +66,7 @@ $(function() {
     
     Persons = Backbone.Collection.extend({ 
     	model: Person,
-    	//url: "/rest/fp/persons"
+    	url: "/rest/fp/persons"
     });
     
     Scheduler = Backbone.Model.extend({
@@ -67,7 +76,5 @@ $(function() {
     XDate.locales['de'] = {
            	monthNames: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
     };
-    
-   
     
 });

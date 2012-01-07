@@ -13,19 +13,26 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/fp")
 public class DayResource {
-
+	
+	private static List<String> absenceHolder = new ArrayList<String>();
+	
 	@POST @Path("day")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	public void a(String content) {
-		System.out.println(content);
+	public void a(String absence) {
+		absenceHolder.add(absence);
 	}
 	@GET @Path("days/{month}")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	public String e(@PathParam("month") String month) {
-		System.out.println("MonthIndex:"+month);
-		return "{}";
+		String result = "[";
+		for (String absence : absenceHolder){
+			result = result + absence + ",";
+		}
+		result=absenceHolder.size()==0?result+"]":result.subSequence(0, result.length()-1)+"]";
+		return result;
+		//return "[{\"name\":\"Andreas Knuth\",\"day\":3,\"month\":0,\"absenseType\":4}]";
 	}
 //	@GET @Path("persons")
 //	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -44,7 +51,7 @@ public class DayResource {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	public String f() {
 		//return "{\'person\':[{\'name\':\'Andreas Knuth\'},{\'name\':\'Stefan Grager\'},{\'name\':\'Dirk Schaube\'},{\'name\':\'Alexander Krumeich\'}]}";
-		return "{\"persons\":[{\"person\":{\"name\":\"Andreas Knuth\"}},{\"person\":{\"name\":\"Dirk Schaube\"}}]}";
+		return "[{\"name\":\"Andreas Knuth\"},{\"name\":\"Stefan Grager\"},{\"name\":\"Dirk Schaube\"}]";
 	}
 //	@POST @Path("{/months/month/days/day}")
 //	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
