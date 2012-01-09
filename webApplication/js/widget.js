@@ -1,36 +1,4 @@
 $(function() {
-
-    
-    /**DayView = Backbone.View.extend({ 
-    	
-    	initialize : function(day,yindex,xindex) {
-
-            
-    		this.absenseTypes = new AbsenseTypes();
-    		this.day = day;
-    		this.yindex = yindex;
-    		this.xindex = xindex;
-    		this.selectedColorIndex = -1;
-    	},
-    	events: { 
-                "click": "click" 
-        }, 
-        click: function(){ 
-        	this.selectedColorIndex=selectedAbsenseType;   
-        	this.day.save();
-        	this.render(); 
-        }, 
-        render: function(){ 
-        	var abstype = this.day.get('absenseType');
-        	if (abstype!=1 || this.selectedColorIndex==-1){
-            	var color = this.absenseTypes.colors[this.selectedColorIndex==-1?abstype:this.selectedColorIndex];
-            	var cc=canvas.circle().attr({cx:this.xindex*30+70, cy:this.yindex*40+40, r:8, fill: color});
-            	cc.node.id=cc+this.yindex+this.xindex;
-        	}
-            return this.element; 
-        } 
-
-    });*/ 
     
     DaysView = Backbone.View.extend({
     	initialize : function(days) {
@@ -39,24 +7,24 @@ $(function() {
     		this.absenseTypes = new AbsenseTypes();
             this.days=days;
             this.persons=days.persons;
-            this.selectedColorIndex = -1;
     	},
     	events: { 
     		"click circle[id^='cc_']" : "click"
     	}, 
+    	change: function(days){
+    		this.days=days;
+    	},
     	click: function(e){ 
     		var clickedEl = $(e.currentTarget);
-    		var id = clickedEl.attr("id");
-    		var x = parseInt(id.substring(3,4));
-    		var y = parseInt(id.substring(4,5));
+    		var id = clickedEl.attr("id").split("_");
+    		var x = parseInt(id[1]);
+    		var y = parseInt(id[2]);
     		var monthLength = this.days.length/persons.length;
     		var index = y*monthLength+x	;
     		var day = this.days.at(index);
-    		//var abstype = day.get('absenseType');
     		var color = this.absenseTypes.colors[selectedAbsenseType];
     		var cc = canvas.circle().attr({cx:x*30+70, cy:y*40+40, r:8, fill: color});
-    		cc.node.id='cc_'+x+y;
-    		this.selectedColorIndex=selectedAbsenseType;   
+    		cc.node.id='cc_'+x+"_"+y;
     		day.set({absenseType: selectedAbsenseType});
     		day.save();
     	}, 
@@ -67,16 +35,15 @@ $(function() {
         			var day = this.days.at(i);
         			var name = persons.at(k).name.replace(' ','\n');
         			canvas.text(30, k*40+40, name).attr({"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
-        			//var view = new DayView(this.days.at(i+k*monthLength),k, i);
-                	//view.render();
         			var day = this.days.at(i+k*monthLength);
                 	var abstype = day.get('absenseType');
-                	if (abstype!=1 || this.selectedColorIndex==-1){
-                    	var color = this.absenseTypes.colors[this.selectedColorIndex==-1?abstype:this.selectedColorIndex];
-                    	var cc=canvas.circle().attr({cx:i*30+70, cy:k*40+40, r:8, fill: color});
-                    	cc.node.id='cc_'+i+k;
-                	}
-
+                   	var color = this.absenseTypes.colors[abstype];
+                   	var cc=canvas.circle().attr({cx:i*30+70, cy:k*40+40, r:8, fill: color});
+                   	if (abstype==1){
+                       	cc.node.id='cc'+i+k;
+                   	} else {
+                       	cc.node.id='cc_'+i+"_"+k;
+                   	}
 				}
         	}
     	}
@@ -89,7 +56,6 @@ $(function() {
             this.delegateEvents(this.events);
     	},
     	events: { 
-            //"click #abt_0,#abt_1,#abt_2,#abt_3,#abt_4,#abt_5,#abt_6,#abt_7" : "click"
     		"click circle[id^='abt_']" : "click"
     	}, 
     	click: function(e){ 
@@ -100,14 +66,13 @@ $(function() {
     		
     	}, 
     	render: function(){
+			$('#oc').remove();
     		for ( var i=0; i<this.absenses.type.length ; i++){
     			var ic = canvas.circle().attr({cx:i*80+20, cy:460, r:8, fill: this.absenses.colors[i]});
     			ic.node.id='abt_'+i;
-   				var oc = canvas.circle().attr({cx:ic.attr('cx'),cy:ic.attr('cy'),r:10, stroke:'#b4cbec',"stroke-width":3,hue: .45});
-    			if (i!=selectedAbsenseType){
-    				oc.remove();
-    			} else {
-    				oc.show();
+    			if (i==selectedAbsenseType){
+    				var oc = canvas.circle().attr({cx:ic.attr('cx'),cy:ic.attr('cy'),r:10, stroke:'#b4cbec',"stroke-width":3,hue: .45});
+       				oc.node.id='oc';
     			}
     			canvas.text(i*80+20, 480, this.absenses.type[i]).attr({"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
     		}
@@ -130,7 +95,6 @@ $(function() {
             
             this.el = document.getElementById("canvas");
             this.delegateEvents(this.events);
-            //this.actualMonth = this.scheduler.get('actualMonth');
     	},
     	events: { 
             "click #rightc,#right" : "clickR",
@@ -149,7 +113,6 @@ $(function() {
     	render: function(){
     		canvas.rect().attr({x:this.x,y:this.y,width:134,height:26,r:13,fill: "#666", stroke: "none"});
 
-            //this.month.attr({x:this.x+67, y:this.y+13, text: this.months.values[this.actualMonth], fill: "#fff", stroke: "none", "font": '100 18px "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif'});
             canvas.text().attr({x:this.x+67, y:this.y+13, text: new XDate(2012, scheduler.get('actualMonth')).toString('MMMM', 'de'), fill: "#fff", stroke: "none", "font": '100 18px "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif'});
 
             var left = canvas.circle().attr({cx:this.x+13,cy:this.y+13,r:10, fill: "#fff", stroke: "none"});
@@ -174,6 +137,7 @@ $(function() {
     		this.scheduler=scheduler;
     		this.persons = persons;
         	this.weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+			this.daysView = new DaysView(this.days);
     		//********************************************
     		//now let's render()
     		//********************************************
@@ -204,10 +168,9 @@ $(function() {
                     canvas.text().attr({x:i*30+70,y:15,text:this.weekdays[t]+"\n"+(i+1)+".","font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
                 }
             }
-        	
-			var ds = new Days(this.days, [{persons: persons},{am:this.scheduler.get('actualMonth')}]);
-			var dv = new DaysView(ds);
-			dv.render();
+    		this.days = new Days(this.days, [{persons: persons},{am:this.scheduler.get('actualMonth')}]);
+    		this.daysView.change(this.days);
+    		this.daysView.render();
     	}  	
     	
     });
@@ -219,14 +182,12 @@ $(function() {
     var selectedAbsenseType = 0; 
     var scheduler = new Scheduler({actualMonth:new XDate().getMonth()}); 
     var scheduleView = null;
-    
-    var persons = new Persons();
 	
     canvas = new Raphael(document.getElementById("canvas"));     
     monthPaginationView = new MonthPaginationView(canvas);
 	absenseTypesSelectionView = new AbsenseTypesSelectionView(canvas);
    
-
+    var persons = new Persons();
     persons.fetch({success: function(){
     	console.log('persons loaded ...');				
     	scheduleView = new ScheduleView(persons,scheduler);
@@ -234,5 +195,4 @@ $(function() {
         console.log(xhr.status);
         console.log(thrownError);
     }});
-    console.log('nothing');
 });

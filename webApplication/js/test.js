@@ -31,7 +31,6 @@ $(function() {
 
     Days = Backbone.Collection.extend({
 		model:Day,
-		//url: '/rest/fp/days/',
 	    initialize: function(models, options){
 	    	this.reset();
 	    	this.persons=options[0].persons;
@@ -55,7 +54,6 @@ $(function() {
 		    		this.add(day);
 		    	}
 	    	}
-	    	console.log('ready');
 	    }
 	});
     Person = Backbone.Model.extend({
