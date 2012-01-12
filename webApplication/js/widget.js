@@ -6,42 +6,49 @@ $(function() {
             this.delegateEvents(this.events);
     		this.absenseTypes = new AbsenseTypes();
             this.days=days;
-            this.persons=days.persons;
+            this.persons=days?days.persons:null;
+            this.monthLength = days?this.days.length/persons.length:null;
+        	this.weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
     	},
     	events: { 
     		"click circle[id^='cc_']" : "click"
     	}, 
     	change: function(days){
     		this.days=days;
+    		this.monthLength = this.days.length/persons.length;
     	},
     	click: function(e){ 
     		var clickedEl = $(e.currentTarget);
     		var id = clickedEl.attr("id").split("_");
     		var x = parseInt(id[1]);
     		var y = parseInt(id[2]);
-    		var monthLength = this.days.length/persons.length;
-    		var index = y*monthLength+x	;
-    		var day = this.days.at(index);
-    		var color = this.absenseTypes.colors[selectedAbsenseType];
+    		
+    		var day = this.days.at(y*this.monthLength+x);
+    		var color = this.absenseTypes.colors[scheduler.get('selectedAbsenseType')];
     		var cc = canvas.circle().attr({cx:x*30+70, cy:y*40+40, r:8, fill: color});
     		cc.node.id='cc_'+x+"_"+y;
-    		day.set({absenseType: selectedAbsenseType});
+    		
+    		day.set({absenseType: scheduler.get('selectedAbsenseType')});
     		day.save();
     	}, 
     	render: function(){ 
-    		var monthLength = this.days.length/persons.length;
+    		var startDay = new XDate(2012,scheduler.get('actualMonth'),1).getDay();
+    		for ( var i=0; i<31; i++){
+                var t = (startDay+i)%7;
+                if (i<this.monthLength){
+                    canvas.text().attr({x:i*30+70,y:15,text:this.weekdays[t]+"\n"+(i+1)+".","font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
+                }
+            }
 			for ( var k=0; k<persons.length ; k++){
-				for ( var i=0; i<monthLength; i++){
+				for ( var i=0; i<this.monthLength; i++){
         			var day = this.days.at(i);
         			var name = persons.at(k).name.replace(' ','\n');
         			canvas.text(30, k*40+40, name).attr({"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
-        			var day = this.days.at(i+k*monthLength);
+        			var day = this.days.at(i+k*this.monthLength);
                 	var abstype = day.get('absenseType');
                    	var color = this.absenseTypes.colors[abstype];
                    	var cc=canvas.circle().attr({cx:i*30+70, cy:k*40+40, r:8, fill: color});
-                   	if (abstype==1){
-                       	cc.node.id='cc'+i+k;
-                   	} else {
+                   	if (abstype!=1){
                        	cc.node.id='cc_'+i+"_"+k;
                    	}
 				}
@@ -61,7 +68,7 @@ $(function() {
     	click: function(e){ 
     		var clickedEl = $(e.currentTarget);
     		var id = clickedEl.attr("id");
-    		selectedAbsenseType = id.substr(4);
+    		scheduler.set({selectedAbsenseType:id.substr(4)});
     		this.render();
     		
     	}, 
@@ -70,7 +77,7 @@ $(function() {
     		for ( var i=0; i<this.absenses.type.length ; i++){
     			var ic = canvas.circle().attr({cx:i*80+20, cy:460, r:8, fill: this.absenses.colors[i]});
     			ic.node.id='abt_'+i;
-    			if (i==selectedAbsenseType){
+    			if (i==scheduler.get('selectedAbsenseType')){
     				var oc = canvas.circle().attr({cx:ic.attr('cx'),cy:ic.attr('cy'),r:10, stroke:'#b4cbec',"stroke-width":3,hue: .45});
        				oc.node.id='oc';
     			}
@@ -103,13 +110,16 @@ $(function() {
     	clickR: function(){ 
     		var actualMonth = scheduler.get('actualMonth');
     		var am=(actualMonth==11)?0:actualMonth+1;
-    		scheduler.set({actualMonth:am});
+    		this.setMonth(am);
     	}, 
     	clickL: function(){ 
     		var actualMonth = scheduler.get('actualMonth');
     		var am=(actualMonth==0)?11:actualMonth-1;
+    		this.setMonth(am);
+    	},
+    	setMonth: function(am){
     		scheduler.set({actualMonth:am});
-    	}, 
+    	},
     	render: function(){
     		canvas.rect().attr({x:this.x,y:this.y,width:134,height:26,r:13,fill: "#666", stroke: "none"});
 
@@ -131,13 +141,11 @@ $(function() {
     });
     
     ScheduleView = Backbone.View.extend({
-    	initialize : function(persons,scheduler) {
-    		this.days=new Backbone.Collection;
-    		this.days.model=Day;
+		days : new Backbone.Collection,
+    	initialize : function(persons) {
     		this.scheduler=scheduler;
     		this.persons = persons;
-        	this.weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-			this.daysView = new DaysView(this.days);
+    		this.days.model=Day;
     		//********************************************
     		//now let's render()
     		//********************************************
@@ -150,47 +158,35 @@ $(function() {
     	},
     	fetch: function(){
     		this.days.url = '/rest/fp/days/'+this.scheduler.get('actualMonth');
-    		this.days.fetch({success: function(){
+    		this.days.fetch({success: function(collection){
     			canvas.clear();
         		monthPaginationView.render();
         		absenseTypesSelectionView.render();
-    			scheduleView.render();
+        		var days = new Days(collection, [{persons: persons},{am:scheduler.get('actualMonth')}]);
+        		daysView.change(days);
+        		daysView.render();
     		}, error: function(e) {
     			console.log(e+'error');
     		}});
     	},
-    	render: function(){ 
-    		var daysOfMonth = XDate.getDaysInMonth (2012, this.scheduler.get('actualMonth'));
-    		var startDay = new XDate(2012,this.scheduler.get('actualMonth'),1).getDay();
-    		for ( var i=0; i<31; i++){
-                var t = (startDay+i)%7;
-                if (i<daysOfMonth){
-                    canvas.text().attr({x:i*30+70,y:15,text:this.weekdays[t]+"\n"+(i+1)+".","font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#fff"});
-                }
-            }
-    		this.days = new Days(this.days, [{persons: persons},{am:this.scheduler.get('actualMonth')}]);
-    		this.daysView.change(this.days);
-    		this.daysView.render();
-    	}  	
-    	
     });
     
     XDate.locales['de'] = {
            	monthNames: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
     };
 
-    var selectedAbsenseType = 0; 
-    var scheduler = new Scheduler({actualMonth:new XDate().getMonth()}); 
-    var scheduleView = null;
+    scheduler = new Scheduler({actualMonth:new XDate().getMonth(), selectedAbsenseType:2}); 
 	
     canvas = new Raphael(document.getElementById("canvas"));     
+    
     monthPaginationView = new MonthPaginationView(canvas);
 	absenseTypesSelectionView = new AbsenseTypesSelectionView(canvas);
-   
-    var persons = new Persons();
+	daysView = new DaysView();
+    
+	persons = new Persons();
     persons.fetch({success: function(){
     	console.log('persons loaded ...');				
-    	scheduleView = new ScheduleView(persons,scheduler);
+    	scheduleView = new ScheduleView(persons);
     },error:function (xhr, ajaxOptions, thrownError){
         console.log(xhr.status);
         console.log(thrownError);
