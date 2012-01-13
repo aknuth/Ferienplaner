@@ -59,6 +59,7 @@ $(function() {
     Person = Backbone.Model.extend({
     	initialize : function() {
     		this.name = this.get('name');
+    		this.holidays = this.get('holidays'); 
     	}
     });
     
