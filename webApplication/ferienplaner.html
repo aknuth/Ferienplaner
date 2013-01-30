@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <link rel="stylesheet" href="css/bootstrap.css" type="text/css" />
+        <link rel="stylesheet" href="css/ferienplaner.css" type="text/css" />
+        <script type="text/javascript" src="js/jquery.js"></script>
+        <script type="text/javascript" src="js/ferienplaner.js"></script>
+    </head>
+    
+    <body>
+        <div class="center">
+            <div id="listen">
+            <ul class="pager">
+                <li class="previous">
+                    <a href="#" onclick=previousMonth()>&larr; Letzter Monat</a>
+                </li>
+                <li id="monat" class="h4"></li>
+                <li class="next">
+                    <a href="#" onclick=nextMonth()>N&auml;chster Monat &rarr;</a>
+                </li>
+            </ul>
+            <ul id="tage" class="view">
+                <li class="text"></li>
+            </ul>
+            </div>
+            <span id="type1" class="label" style="background-color:#7fad13">Arbeit</span>
+            <span id="type2" class="label" style="background-color:#79bbff">Feiertag</span>
+            <span id="type3" class="label" style="background-color:#fe1a00">Schulung</span>
+            <span id="type4" class="label" style="background-color:#da3df6">Sonderurlaub</span>
+            <span id="type5" class="label" style="background-color:#3d94f6">Gesch&auml;ftsreise</span>
+            <span id="type6" class="label" style="background-color:#ffce79">Sonstiges</span>
+            <span id="type7" class="label" style="background-color:#ff8000">Urlaub</span>
+        </div>
+    </body>
+
+</html>
