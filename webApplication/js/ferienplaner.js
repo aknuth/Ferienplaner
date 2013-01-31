@@ -24,6 +24,7 @@ function start() {
     initBelegungsliste();
     erzeugePersonSpalte();
     renderMonth();
+    getMonthData();
     
 }
 
@@ -90,22 +91,26 @@ function renderMonth() {
         	} else {
         		nextMonth();
         	}
-        	$.get("/rest/fp/"+month, function(data) {
-    	        for (var i=0;i<data.length;i++){
-    	        	if(data[i].month == month){
-	    	        	var year = data[i].year;
-	    	            var id = data[i].day+(31*(data[i].personenID-1));
-	    	            $('li#day'+id).css('background-color',''+colors[(data[i].abwesenheit-1)])
-	    	            $('li#day'+id).attr('abwesenheit',''+data[i].abwesenheit);
-	    	            jahr2013[month][id]=""+data[i].abwesenheit;
-	    	        }
-            	}
-            })
+        	getMonthData();
         });
     }
     flag = false;
     $('li#monat').replaceWith('<li id="monat" class="h4">' + monthName(month - 1) + " " + year + '</li>');
     appendUrlaubstagezaehler();
+}
+
+function getMonthData(){
+	$.get("/rest/fp/"+month, function(data) {
+        for (var i=0;i<data.length;i++){
+        	if(data[i].month == month){
+	        	var year = data[i].year;
+	            var id = data[i].day+(31*(data[i].personenID-1));
+	            $('li#day'+id).css('background-color',''+colors[(data[i].abwesenheit-1)])
+	            $('li#day'+id).attr('abwesenheit',''+data[i].abwesenheit);
+	            jahr2013[month][id]=""+data[i].abwesenheit;
+	        }
+    	}
+    })
 }
 
 function appendUrlaubstagezaehler(){

@@ -1,5 +1,7 @@
 package de.yannick;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +12,34 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+
 @Path("/fp")
 public class FerienplanerResource {
+	
+	private static final File file = new File("abwesenheiten");
 	private static final List<Abwesenheit> abwesenheitsliste = new ArrayList<>();
+	static {
+		try{
+			if (file.exists()){
+				List<String> lines = FileUtils.readLines(file);
+				for (String line : lines){
+					String[] parts = StringUtils.split(line, ";");
+					Abwesenheit aw = new Abwesenheit();
+					aw.year = Integer.parseInt(parts[0]);
+					aw.month = Integer.parseInt(parts[1]);
+					aw.day = Integer.parseInt(parts[2]);
+					aw.abwesenheit = Integer.parseInt(parts[3]);
+					aw.personenID = Integer.parseInt(parts[4]);
+					abwesenheitsliste.add(aw);
+				}
+			}
+		} catch (Exception e){
+			throw new RuntimeException(e);
+		}
+	}
 	
 	@GET
 	@Path("{year}/{month}/{day}/{abwesenheit}/{personenID}")
@@ -27,6 +54,11 @@ public class FerienplanerResource {
 		aw.abwesenheit = abwesenheit;
 		aw.personenID = personenID;
 		abwesenheitsliste.add(aw);
+		try {
+			FileUtils.write(file, year+";"+month+";"+day+";"+abwesenheit+";"+personenID+"\n", true);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		return "";
 	}
 	
