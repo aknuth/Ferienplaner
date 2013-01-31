@@ -67,7 +67,7 @@ public class FerienplanerResource {
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	public String getAbwesenheitenProMonat(@PathParam("month") int month){
-		//[{"year":2013,"month":2,"day":22,"abwesenheit":2,"personenID":1},{}]
+		//return "[{\"year\":aw.year,\"month\":aw.month,\"day\":aw.day,\"abwesenheit\":aw.abwesenheit,\"personenID\":aw.personenID}]";
 		return "[{\"year\":2013,\"month\":2,\"day\":22,\"abwesenheit\":2,\"personenID\":1}]";
 	}
 }
