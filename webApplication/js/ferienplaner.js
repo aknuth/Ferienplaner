@@ -78,10 +78,17 @@ function renderMonth() {
         $(this).css('background-color', colors[abwesenheitstyp - 1]);
         //alert(((this.id).substring(3) % 31) + ' , ' + month + ' , ' + year + ' , ' + (personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)]) + ' , ' + abwesenheit);
         var day = this.id.substring(3) % 31;
-        var person = personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)][0];
-        $.get("/rest/fp/2013/"+month+"/"+day+"/"+abwesenheitstyp+"/"+person, function(data) {
-        	console.log('tralala');  
-        	//alert("success");
+        var personID = personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)][0];
+        var oldAWIndex = parseInt($(this).attr('abwesenheit'));
+		var ferientage = parseInt($('#zaehler_'+personID).text());
+        if (abwesenheitstyp===7 && oldAWIndex!=7){
+    		ferientage = ferientage +1;
+    	} else if (abwesenheitstyp!=7 && oldAWIndex===7){
+    		ferientage = ferientage -1;
+    	}
+		$('#zaehler_'+personID).text(ferientage);
+        $(this).attr('abwesenheit',''+abwesenheitstyp);
+        $.get("/rest/fp/2013/"+month+"/"+day+"/"+abwesenheitstyp+"/"+personID, function(data) {
         })
     });
     if (flag){
@@ -105,9 +112,13 @@ function getMonthData(){
         	if(data[i].month == month){
 	        	var year = data[i].year;
 	            var id = data[i].day+(31*(data[i].personenID-1));
-	            $('li#day'+id).css('background-color',''+colors[(data[i].abwesenheit-1)])
+	            $('li#day'+id).css('background-color',''+colors[(data[i].abwesenheit-1)]);
 	            $('li#day'+id).attr('abwesenheit',''+data[i].abwesenheit);
-	            jahr2013[month][id]=""+data[i].abwesenheit;
+	            if(data[i].abwesenheit == 7){
+	            	var ferientage = parseInt($('#zaehler_'+data[i].personenID).text());
+	        		ferientage = ferientage +1;
+	            	$('#zaehler_'+data[i].personenID).text(ferientage);
+	            }
 	        }
     	}
     })
@@ -115,7 +126,7 @@ function getMonthData(){
 
 function appendUrlaubstagezaehler(){
     for(var i = 1; i<=personenListe.length; i++){
-        $('ul#'+ personenListe[i -1][1]).append('<li id="zaehler" class="zaehler" onclick="alert(id)">'+urlaubstage+'</li>');
+        $('ul#'+ personenListe[i -1][1]).append('<li id="zaehler_'+i+'" class="zaehler" onclick="alert(id)">'+urlaubstage+'</li>');
     }
 }
 

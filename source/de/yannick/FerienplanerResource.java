@@ -3,7 +3,11 @@ package de.yannick;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 public class FerienplanerResource {
 	
 	private static final File file = new File("abwesenheiten");
-	private static final List<Abwesenheit> abwesenheitsliste = new ArrayList<>();
+	private static final Map<Abwesenheit,Abwesenheit> abwesenheitsMap = new HashMap<>();
 	static {
 		try{
 			if (file.exists()){
@@ -33,7 +37,7 @@ public class FerienplanerResource {
 					aw.day = Integer.parseInt(parts[2]);
 					aw.abwesenheit = Integer.parseInt(parts[3]);
 					aw.personenID = Integer.parseInt(parts[4]);
-					abwesenheitsliste.add(aw);
+					abwesenheitsMap.put(aw,aw);
 				}
 			}
 		} catch (Exception e){
@@ -53,7 +57,7 @@ public class FerienplanerResource {
 		aw.day = day;
 		aw.abwesenheit = abwesenheit;
 		aw.personenID = personenID;
-		abwesenheitsliste.add(aw);
+		abwesenheitsMap.put(aw,aw);
 		try {
 			FileUtils.write(file, year+";"+month+";"+day+";"+abwesenheit+";"+personenID+"\n", true);
 		} catch (IOException e) {
@@ -67,7 +71,20 @@ public class FerienplanerResource {
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	public String getAbwesenheitenProMonat(@PathParam("month") int month){
+		String result = "[";
+		for (Abwesenheit aw:abwesenheitsMap.values()){
+			//Abwesenheit aw = abwesenheitsliste.get(i);
+			if (aw.month==month){
+				if (result.length()>2){
+					result = result + ",";
+				}
+				result = result + "{\"year\":"+aw.year+",\"month\":"+aw.month+",\"day\":"+aw.day+",\"abwesenheit\":"+aw.abwesenheit+",\"personenID\":"+aw.personenID+"}";
+				//return "[{\"year\":aw.year,\"month\":aw.month,\"day\":aw.day,\"abwesenheit\":aw.abwesenheit,\"personenID\":aw.personenID}]";
+			}
+		}
+		result = result + "]";
+		return result;
 		//return "[{\"year\":aw.year,\"month\":aw.month,\"day\":aw.day,\"abwesenheit\":aw.abwesenheit,\"personenID\":aw.personenID}]";
-		return "[{\"year\":2013,\"month\":2,\"day\":22,\"abwesenheit\":2,\"personenID\":1}]";
+		//return "[{\"year\":2013,\"month\":2,\"day\":22,\"abwesenheit\":2,\"personenID\":1}]";
 	}
 }
