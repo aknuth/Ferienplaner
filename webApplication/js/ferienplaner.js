@@ -5,10 +5,9 @@ var personenID = 0;
 var personenListe = new Array();
 var jahr2013 = new Array(12);
 var colors = ['#7fad13','#79bbff','#fe1a00','#da3df6','#3d94f6','#ffce79','#ff8000'];
-var abwesenheit = 0;
+var abwesenheitstyp = 0;
 var urlaubstage = 0;
-var day = 1;
-
+var flag = true;
 /**
  * Funktion die beim Start ausgeführt wird
  **/
@@ -25,7 +24,6 @@ function start() {
     initBelegungsliste();
     erzeugePersonSpalte();
     renderMonth();
-    appendUrlaubstagezaehler();
     
 }
 
@@ -69,22 +67,45 @@ function renderMonth() {
     }
 
     $('span[id^="type"]').click(function() {
-        abwesenheit = parseInt($(this).attr('id').substring(4));
+        abwesenheitstyp = parseInt($(this).attr('id').substring(4));
         $('span[id^="type"]').each(function() {
             $(this).css('border', 'none');
         });
         $(this).css('border', 'solid 2px black');
     });
     $('li[id^="day"]').click(function() {
-        $(this).css('background-color', colors[abwesenheit - 1]);
-        alert(((this.id).substring(3) % 31) + ' , ' + month + ' , ' + year + ' , ' + (personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)]) + ' , ' + abwesenheit);
-        if (abwesenheit = 7) {
-            urlaubstage++;
-            $('li#zaehler').val(urlaubstage);
-        }
-
+        $(this).css('background-color', colors[abwesenheitstyp - 1]);
+        //alert(((this.id).substring(3) % 31) + ' , ' + month + ' , ' + year + ' , ' + (personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)]) + ' , ' + abwesenheit);
+        var day = this.id.substring(3) % 31;
+        var person = personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)][0];
+        $.get("/rest/fp/2013/"+month+"/"+day+"/"+abwesenheitstyp+"/"+person, function(data) {
+        	console.log('tralala');  
+        	//alert("success");
+        })
     });
+    if (flag){
+        $('a[id^="month"]').click(function(e) {
+        	if ($(this).attr('id').substring(6)==='zurueck'){
+        		previousMonth();
+        	} else {
+        		nextMonth();
+        	}
+        	$.get("/rest/fp/"+month, function(data) {
+    	        for (var i=0;i<data.length;i++){
+    	        	if(data[i].month == month){
+	    	        	var year = data[i].year;
+	    	            var id = data[i].day+(31*(data[i].personenID-1));
+	    	            $('li#day'+id).css('background-color',''+colors[(data[i].abwesenheit-1)])
+	    	            $('li#day'+id).attr('abwesenheit',''+data[i].abwesenheit);
+	    	            jahr2013[month][id]=""+data[i].abwesenheit;
+	    	        }
+            	}
+            })
+        });
+    }
+    flag = false;
     $('li#monat').replaceWith('<li id="monat" class="h4">' + monthName(month - 1) + " " + year + '</li>');
+    appendUrlaubstagezaehler();
 }
 
 function appendUrlaubstagezaehler(){
@@ -98,7 +119,7 @@ function daysInMonth(year, month) {
     return new Date(year, month, 0).getDate();
 }
 
-//generiert tagesfelder mit vortlaufender id die bei klick ihre id ausgeben
+//generiert tagesfelder mit vortlaufender id
 function generateDayfields(idTagesFeld) {
     var idZaehler = idTagesFeld;
     //VORSICHT: setzt voraus das immer ein Person existiert
