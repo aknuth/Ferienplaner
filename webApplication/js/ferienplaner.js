@@ -81,11 +81,15 @@ function renderMonth() {
         var personID = personenListe[(parseInt((this.id).substring(3) - ((this.id).substring(3) % 31)) / 31)][0];
         var oldAWIndex = parseInt($(this).attr('abwesenheit'));
 		var ferientage = parseInt($('#zaehler_'+personID).text());
+		
         if (abwesenheitstyp===7 && oldAWIndex!=7){
     		ferientage = ferientage +1;
+    		
     	} else if (abwesenheitstyp!=7 && oldAWIndex===7){
     		ferientage = ferientage -1;
+    		
     	}
+		
 		$('#zaehler_'+personID).text(ferientage);
         $(this).attr('abwesenheit',''+abwesenheitstyp);
         $.get("/rest/fp/2013/"+month+"/"+day+"/"+abwesenheitstyp+"/"+personID, function(data) {
@@ -117,6 +121,7 @@ function getMonthData(){
 	            if(data[i].abwesenheit == 7){
 	            	var ferientage = parseInt($('#zaehler_'+data[i].personenID).text());
 	        		ferientage = ferientage +1;
+	        		
 	            	$('#zaehler_'+data[i].personenID).text(ferientage);
 	            }
 	        }
@@ -157,6 +162,7 @@ function generateDayfields(idTagesFeld) {
         idZaehler = idZaehler + 31;
     }
 }
+
 
 //generiert datumsanzeige
 function appendTag(day) {
@@ -286,4 +292,5 @@ function initBelegungsliste() {
             }
         }
     }
+
 }

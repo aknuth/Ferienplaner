@@ -15,11 +15,13 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 
 @Path("/fp")
 public class FerienplanerResource {
-	
+
 	private static final File file = new File("abwesenheiten");
 	private static final Map<Abwesenheit,Abwesenheit> abwesenheitsMap = new HashMap<>();
 	static {
@@ -41,7 +43,7 @@ public class FerienplanerResource {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@GET
 	@Path("{year}/{month}/{day}/{abwesenheit}/{personenID}")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -62,7 +64,7 @@ public class FerienplanerResource {
 		}
 		return "";
 	}
-	
+
 	@GET
 	@Path("{month}")
 	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -84,4 +86,33 @@ public class FerienplanerResource {
 		//return "[{\"year\":aw.year,\"month\":aw.month,\"day\":aw.day,\"abwesenheit\":aw.abwesenheit,\"personenID\":aw.personenID}]";
 		//return "[{\"year\":2013,\"month\":2,\"day\":22,\"abwesenheit\":2,\"personenID\":1}]";
 	}
+	@GET
+	@Path("urlaubstage")
+	@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	public String getUrlaubstage(){
+		JSONArray alleUrlaubsTage = new JSONArray();
+
+		Map<Integer, Integer> urlaubstage = new HashMap<>();
+		for (Abwesenheit aw:abwesenheitsMap.values()){
+			if (7 == aw.abwesenheit)  {
+				Integer urlaubstaganzahl = urlaubstage.get(aw.personenID);
+				urlaubstaganzahl = (urlaubstaganzahl == null) ? 0 : urlaubstaganzahl;
+				urlaubstage.put(aw.personenID, urlaubstaganzahl+1);
+			}
+		}
+
+		for (Integer personenID : urlaubstage.keySet()) {
+			JSONObject personUrlaubsTage = new JSONObject();
+			personUrlaubsTage.put("id",personenID);
+			personUrlaubsTage.put("anzahl", urlaubstage.get(personenID));
+			alleUrlaubsTage.add(personUrlaubsTage);
+		}
+
+
+
+
+		return alleUrlaubsTage.toString();
+	}
+
 }
